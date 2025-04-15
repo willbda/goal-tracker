@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .goal-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 24px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            text-align: center;
+            color: white;
+            line-height: 24px;
+        }
+        button {
+            padding: 8px 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input {
+            padding: 8px;
+            width: 80px;
+        }
+        .backup-section {
+            margin: 30px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Goals Tracker</h1>
+    <p>Track your progress from April 14 to June 20, 2025</p>
+
+    <!-- JavaScript Learning Goal -->
+    <div class="goal-section">
+        <h2>Goal 1: Learn JavaScript</h2>
+        <p>Target: 40 hours (4 hours/week for 10 weeks)</p>
+        
+        <div>
+            <label for="js-hours">Add hours spent learning JavaScript:</label>
+            <input type="number" id="js-hours" min="0" step="0.5" value="0">
+            <button onclick="addJSHours()">Log Hours</button>
+        </div>
+        
+        <p>Total hours: <span id="js-total">0</span> / 40</p>
+        
+        <div class="progress-bar-container">
+            <div id="js-progress" class="progress-bar" style="width: 0%">0%</div>
+        </div>
+        
+        <p>Last updated: <span id="js-last-update">Never</span></p>
+    </div>
+
+    <!-- Social Time Goal -->
+    <div class="goal-section">
+        <h2>Goal 2: Social Time</h2>
+        <p>Target: 7 different occasions with friends/family</p>
+        
+        <div>
+            <button onclick="logSocialEvent()">Log a Social Event</button>
+        </div>
+        
+        <p>Events completed: <span id="social-total">0</span> / 7</p>
+        
+        <div class="progress-bar-container">
+            <div id="social-progress" class="progress-bar" style="width: 0%">0%</div>
+        </div>
+        
+        <div id="social-list">
+            <!-- Social events will be listed here -->
+        </div>
+    </div>
+
+    <!-- Running Goal -->
+    <div class="goal-section">
+        <h2>Goal 3: Running</h2>
+        <p>Target: 120km (12km/week for 10 weeks)</p>
+        
+        <div>
+            <label for="run-km">Add kilometers run:</label>
+            <input type="number" id="run-km" min="0" step="0.1" value="0">
+            <button onclick="addRunKm()">Log Run</button>
+        </div>
+        
+        <p>Total distance: <span id="run-total">0</span> / 120 km</p>
+        
+        <div class="progress-bar-container">
+            <div id="run-progress" class="progress-bar" style="width: 0%">0%</div>
+        </div>
+        
+        <p>Last updated: <span id="run-last-update">Never</span></p>
+    </div>
+
+    <!-- Backup and Restore Section -->
+    <div class="backup-section">
+        <h3>Backup & Restore</h3>
+        <p>Save your progress data or restore from a previous backup</p>
+        
+        <button onclick="backupData()">Save Backup File</button>
+        
+        <div style="margin-top: 15px;">
+            <label for="restore-file">Restore from backup:</label>
+            <input type="file" id="restore-file" accept=".json">
+            <button onclick="restoreData()">Restore</button>
+        </div>
+    </div>
+
+    <!-- Reset Button -->
+    <button onclick="resetAllData()">Reset All Data</button>
+
+    <script>
+        // This runs when the page loads
+        window.onload = function() {
+            // Load saved data from localStorage (if any)
+            loadAllData();
+        };
+
+        // Goal 1: JavaScript Learning Hours
+        function addJSHours() {
+            // Get the hours input value
+            const hoursInput = document.getElementById('js-hours');
+            const hours = parseFloat(hoursInput.value);
+            
+            if (hours <= 0) {
+                alert("Please enter a valid number of hours");
+                return;
+            }
+            
+            // Get current total from localStorage or start at 0
+            let currentTotal = parseFloat(localStorage.getItem('jsHoursTotal') || 0);
+            
+            // Add new hours to the total
+            currentTotal += hours;
+            
+            // Save back to localStorage
+            localStorage.setItem('jsHoursTotal', currentTotal);
+            localStorage.setItem('jsLastUpdate', new Date().toLocaleString());
+            
+            // Reset the input
+            hoursInput.value = 0;
+            
+            // Update the display
+            updateJSDisplay();
+        }
+
+        function updateJSDisplay() {
+            const total = parseFloat(localStorage.getItem('jsHoursTotal') || 0);
+            const lastUpdate = localStorage.getItem('jsLastUpdate') || 'Never';
+            
+            // Update text displays
+            document.getElementById('js-total').textContent = total.toFixed(1);
+            document.getElementById('js-last-update').textContent = lastUpdate;
+            
+            // Update progress bar
+            const percentComplete = (total / 40) * 100;
+            const progressBar = document.getElementById('js-progress');
+            progressBar.style.width = Math.min(percentComplete, 100) + '%';
+            progressBar.textContent = Math.round(percentComplete) + '%';
+        }
+
+        // Goal 2: Social Events
+        function logSocialEvent() {
+            const date = new Date().toLocaleDateString();
+            
+            // Get existing events
+            let events = JSON.parse(localStorage.getItem('socialEvents') || '[]');
+            
+            // Add new event with date
+            events.push(date);
+            
+            // Save back to localStorage
+            localStorage.setItem('socialEvents', JSON.stringify(events));
+            
+            // Update the display
+            updateSocialDisplay();
+        }
+
+        function updateSocialDisplay() {
+            const events = JSON.parse(localStorage.getItem('socialEvents') || '[]');
+            
+            // Update counter
+            document.getElementById('social-total').textContent = events.length;
+            
+            // Update progress bar
+            const percentComplete = (events.length / 7) * 100;
+            const progressBar = document.getElementById('social-progress');
+            progressBar.style.width = Math.min(percentComplete, 100) + '%';
+            progressBar.textContent = Math.round(percentComplete) + '%';
+            
+            // Update list of events
+            const listContainer = document.getElementById('social-list');
+            listContainer.innerHTML = '';
+            
+            if (events.length > 0) {
+                const list = document.createElement('ul');
+                events.forEach((date, index) => {
+                    const item = document.createElement('li');
+                    item.textContent = `Event ${index + 1}: ${date}`;
+                    list.appendChild(item);
+                });
+                listContainer.appendChild(list);
+            }
+        }
+
+        // Goal 3: Running
+        function addRunKm() {
+            // Get the km input value
+            const kmInput = document.getElementById('run-km');
+            const km = parseFloat(kmInput.value);
+            
+            if (km <= 0) {
+                alert("Please enter a valid distance");
+                return;
+            }
+            
+            // Get current total from localStorage or start at 0
+            let currentTotal = parseFloat(localStorage.getItem('runKmTotal') || 0);
+            
+            // Add new km to the total
+            currentTotal += km;
+            
+            // Save back to localStorage
+            localStorage.setItem('runKmTotal', currentTotal);
+            localStorage.setItem('runLastUpdate', new Date().toLocaleString());
+            
+            // Reset the input
+            kmInput.value = 0;
+            
+            // Update the display
+            updateRunDisplay();
+        }
+
+        function updateRunDisplay() {
+            const total = parseFloat(localStorage.getItem('runKmTotal') || 0);
+            const lastUpdate = localStorage.getItem('runLastUpdate') || 'Never';
+            
+            // Update text displays
+            document.getElementById('run-total').textContent = total.toFixed(1);
+            document.getElementById('run-last-update').textContent = lastUpdate;
+            
+            // Update progress bar
+            const percentComplete = (total / 120) * 100;
+            const progressBar = document.getElementById('run-progress');
+            progressBar.style.width = Math.min(percentComplete, 100) + '%';
+            progressBar.textContent = Math.round(percentComplete) + '%';
+        }
+
+        // Load all data on page load
+        function loadAllData() {
+            updateJSDisplay();
+            updateSocialDisplay();
+            updateRunDisplay();
+        }
+
+        // Reset all data
+        function resetAllData() {
+            if (confirm("Are you sure you want to reset all your tracking data? This cannot be undone.")) {
+                localStorage.removeItem('jsHoursTotal');
+                localStorage.removeItem('jsLastUpdate');
+                localStorage.removeItem('socialEvents');
+                localStorage.removeItem('runKmTotal');
+                localStorage.removeItem('runLastUpdate');
+                loadAllData();
+            }
+        }
+
+        // Backup functionality
+        function backupData() {
+            // Collect all data from localStorage
+            const data = {
+                jsHoursTotal: localStorage.getItem('jsHoursTotal') || 0,
+                jsLastUpdate: localStorage.getItem('jsLastUpdate') || 'Never',
+                socialEvents: JSON.parse(localStorage.getItem('socialEvents') || '[]'),
+                runKmTotal: localStorage.getItem('runKmTotal') || 0,
+                runLastUpdate: localStorage.getItem('runLastUpdate') || 'Never'
+            };
+            
+            // Convert to JSON string
+            const jsonString = JSON.stringify(data, null, 2);
+            
+            // Create a download link
+            const blob = new Blob([jsonString], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            // Create download link and trigger it
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'goal-tracker-backup.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Restore from backup file
+        function restoreData() {
+            const fileInput = document.getElementById('restore-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert("Please select a backup file first");
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    // Validate backup file format
+                    if (!data.hasOwnProperty('jsHoursTotal') || 
+                        !data.hasOwnProperty('socialEvents') || 
+                        !data.hasOwnProperty('runKmTotal')) {
+                        alert("Invalid backup file format");
+                        return;
+                    }
+                    
+                    // Save data to localStorage
+                    localStorage.setItem('jsHoursTotal', data.jsHoursTotal);
+                    localStorage.setItem('jsLastUpdate', data.jsLastUpdate);
+                    localStorage.setItem('socialEvents', JSON.stringify(data.socialEvents));
+                    localStorage.setItem('runKmTotal', data.runKmTotal);
+                    localStorage.setItem('runLastUpdate', data.runLastUpdate);
+                    
+                    // Refresh the display
+                    loadAllData();
+                    
+                    alert('Data restored successfully!');
+                } catch (error) {
+                    alert('Error restoring data: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
